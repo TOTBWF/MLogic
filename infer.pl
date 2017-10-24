@@ -66,7 +66,7 @@ bind(tvar(A), T, [T/tvar(A)]) :- ftv(T, F), \+ member(tvar(A), F), !.
 bind(tvar(A), T) :- throw(infiniteType(tvar(A), T)).
 
 % Finds the most general unifier (substitution set) for 2 types
-unify(tcons(X), tcons(X), []).
+unify(tcons(X), tcons(X), []) :- !.
 unify(tvar(A), T, S) :- bind(tvar(A), T, S), !.
 unify(T, tvar(A), S) :- bind(tvar(A), T, S), !.
 unify(tarrow(L1, R1), tarrow(L2, R2), S) :- 
@@ -75,7 +75,10 @@ unify(tarrow(L1, R1), tarrow(L2, R2), S) :-
     apply(SL, R2, R2S), 
     unify(R1S, R2S, SR),
     compose(SL, SR, S), !. 
-unify(T1, T2, _) :- throw(unifcationError(T1, T2)).
+unify(T1, T2, _) :- 
+    pretty_print(T1, S1),
+    pretty_print(T2, S2),
+    throw(unifcationError(S1, S2)).
 
 % Replaces all bound type variables with fresh ones
 instantiate(N, tpoly(Tv1, T), NN, T2) :- fresh_type(N, N1, Tv2), apply(Tv2/Tv1, T, T1), instantiate(N1, T1, NN, T2).
@@ -95,7 +98,8 @@ binop_type(beq, tarrow(tcons(int), tarrow(tcons(int), tcons(bool)))).
 % Infers the most general type for an expression
 infer(_, N, lint(_), N, [], tcons(int)).
 infer(_, N, lbool(_), N, [], tcons(bool)).
-infer(C, N, var(X), NN, [], T) :- member(var(X):T1, C), instantiate(N, T1, NN, T).
+infer(C, N, var(X), NN, [], T) :- member(var(X):T1, C), !, instantiate(N, T1, NN, T).
+infer(_, _, var(X), _, _, _) :- throw(undefinedError(var(X))).
 infer(C, N, app(E1, E2), NN, S, T) :- 
     infer(C, N, E1, N1, S1, T1), 
     apply(S1, C, C1),
@@ -121,8 +125,9 @@ infer(C, N, let(X, E1, E2), NN, S, T) :-
 infer(C, N, fix(E), NN, S, T) :-
     infer(C, N, E, N1, S1, T1),
     fresh_type(N1, NN, Tv),
-    unify(tarrow(Tv, Tv), T1, S),
-    apply(S1, tarrow(Tv, Tv), T).
+    unify(T1, tarrow(Tv, Tv), S2),
+    compose(S1, S2, S),
+    apply(S, Tv, T).
 infer(C, N, op(B, E1, E2), NN, S, T) :-
     infer(C, N, E1, N1, S1, T1),
     infer(C, N1, E2, N2, S2, T2),
