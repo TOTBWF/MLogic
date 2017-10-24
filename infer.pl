@@ -35,7 +35,7 @@ apply(_/tvar(A), tvar(B), tvar(B)) :- A \= B.
 apply(T/tvar(A), tarrow(T1, T2), tarrow(T3, T4)) :- apply(T/tvar(A), T1, T3), apply(T/tvar(A), T2, T4). 
 apply(T/tvar(A), tpoly(tvar(A), T0), T1) :- apply(T/tvar(A), T0, T1).
 apply(T/tvar(A), tpoly(tvar(B), T0), tpoly(tvar(B), T1)) :- A \= B, apply(T/tvar(A), T0, T1).
-apply(_/tvar(_), tpoly([], T0), T0).
+
 % It is useful to be able to apply substitutions onto the type environment
 apply(T/tvar(A), [X:T0|Cs0], [X:T1|Cs]) :- apply(T/tvar(A), T0, T1), apply(T/tvar(A), Cs0, Cs).
 apply(_/tvar(_), [], []).
