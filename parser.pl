@@ -52,8 +52,8 @@ if_else(ite(C, E1, E2)) --> "if", white, expression(C), white, "then", white, ex
 term(E) --> lambda(E), !.
 term(E) --> literal(E), !.
 term(E) --> variable(E), !.
-term(E) --> let_in(E), !.
-term(E) --> let_rec_in(E), !.
+term(E) --> parens(let_in(E)), !.
+term(E) --> parens(let_rec_in(E)), !.
 term(E) --> parens(if_else(E)), !.
 term(E) --> parens(expression(E)).
 term(E) --> parens(infix_op(E)).
